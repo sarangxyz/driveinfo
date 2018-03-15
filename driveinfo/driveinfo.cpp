@@ -357,10 +357,22 @@ void printRow(int idx, const std::wstring& diskModel, const std::wstring& diskTy
 	
 }
 
+//--------------------------------------------------------------------------------------
+static void printInfo()
+{
+	using namespace std;
+	wcout << endl;
+	wcout << L"A handy utility to print drive information" << endl;
+	wcout << L"Copyright c Sarang Baheti 2018" << endl;
+	wcout << L"source available at : https://www.github.com/angeleno/driveinfo" << endl;
+	wcout << endl;
+}
 
 //--------------------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
+	printInfo();
+
 	ComInitializer initializer;
 	
 	DiskQuery diskQuery;
