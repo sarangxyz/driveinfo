@@ -8,6 +8,7 @@
 #include <comdef.h>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 #include <Wbemidl.h>
@@ -79,11 +80,28 @@ class DiskQuery
 private:
 	CComPtr<IWbemServices> _psvc;
 
-public:
-	DiskQuery() : _psvc(nullptr)
+
+	DiskQuery(CComPtr<IWbemServices> psvc) : _psvc(psvc)
 	{
-		_psvc = getIWbemServices(L"root\\microsoft\\windows\\storage");
+		
 	}
+
+    DiskQuery(const DiskQuery&) = delete;
+    DiskQuery& operator=(const DiskQuery&) = delete;
+    DiskQuery(DiskQuery&&) = delete;
+
+public:
+
+    static std::shared_ptr<DiskQuery> GetInstance()
+    {
+        std::shared_ptr<DiskQuery> diskQryPtr;
+        CComPtr<IWbemServices> _psvc = getIWbemServices(L"root\\microsoft\\windows\\storage");
+        if (_psvc != nullptr)
+            diskQryPtr.reset(new DiskQuery(_psvc));
+        return diskQryPtr;
+    }
+
+    ~DiskQuery() = default;
 
 	const USHORTVector GetPhysicalDiskType() const
 	{
@@ -375,10 +393,15 @@ int main(int argc, char **argv)
 
 	ComInitializer initializer;
 	
-	DiskQuery diskQuery;
+    std::shared_ptr<DiskQuery> diskQuery = DiskQuery::GetInstance();
+    if (diskQuery == nullptr)
+    {
+        std::wcout << L"failed to connect to wmi" << std::endl;
+        return 0;
+    }
 
-	auto diskModelVec = diskQuery.GetPhysicalDiskModel();
-	auto diskTypeVec = diskQuery.GetPhysicalDiskType();
+	auto diskModelVec = diskQuery->GetPhysicalDiskModel();
+	auto diskTypeVec = diskQuery->GetPhysicalDiskType();
 
 	printHeader();
 	for (int idx = 0; idx < diskModelVec.size(); ++idx)
